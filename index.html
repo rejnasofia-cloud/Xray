@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xray Cloud Onboarding Kit — Testing CoE</title>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: #172B4D;
+    background: #fff;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .kit-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── Hero ── */
+  .hero { border-bottom: 1px solid #DFE1E6; padding-bottom: 1.75rem; margin-bottom: 2rem; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #DEEBFF; color: #0747A6;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .hero h1 { font-size: 24px; font-weight: 700; color: #172B4D; margin-bottom: 0.5rem; }
+  .hero p { font-size: 14px; color: #5E6C84; max-width: 640px; }
+
+  /* ── Progress banner ── */
+  .progress-banner {
+    display: flex; align-items: center; gap: 1.25rem;
+    background: #F4F5F7; border: 1px solid #DFE1E6;
+    border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+  }
+  .prog-ring-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+  .prog-ring-wrap svg { transform: rotate(-90deg); }
+  .prog-ring-label {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 13px; font-weight: 700; color: #172B4D;
+  }
+  .progress-banner h3 { font-size: 14px; font-weight: 600; color: #172B4D; margin-bottom: 3px; }
+  .progress-banner p { font-size: 13px; color: #5E6C84; }
+  .progress-banner strong { color: #172B4D; }
+
+  /* ── Nav tabs ── */
+  .nav-tabs {
+    display: flex; gap: 0; border-bottom: 2px solid #DFE1E6;
+    margin-bottom: 2rem; overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; background: none; color: #5E6C84;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    white-space: nowrap; transition: color 0.15s;
+  }
+  .nav-tab:hover { color: #172B4D; }
+  .nav-tab.active { color: #0052CC; border-bottom-color: #0052CC; font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 11px; font-weight: 600; color: #7A869A;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+
+  /* ── Phase cards ── */
+  .phase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .phase-card {
+    background: #fff; border: 1px solid #DFE1E6; border-radius: 8px;
+    padding: 1rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .phase-card:hover { border-color: #4C9AFF; box-shadow: 0 1px 4px rgba(0,82,204,0.08); }
+  .phase-card.active { border: 2px solid #0052CC; background: #F4F5F7; }
+  .phase-num { font-size: 11px; font-weight: 600; color: #0052CC; margin-bottom: 5px; }
+  .phase-name { font-size: 13px; font-weight: 600; color: #172B4D; margin-bottom: 3px; }
+  .phase-desc { font-size: 12px; color: #5E6C84; line-height: 1.4; }
+
+  /* ── Phase detail ── */
+  .phase-detail {
+    background: #F4F5F7; border: 1px solid #DFE1E6;
+    border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .phase-detail h3 { font-size: 15px; font-weight: 600; color: #172B4D; margin-bottom: 0.5rem; }
+  .phase-prog-bar-wrap { background: #DFE1E6; border-radius: 20px; height: 5px; margin-bottom: 6px; overflow: hidden; }
+  .phase-prog-bar { background: #0052CC; height: 5px; border-radius: 20px; transition: width 0.3s; }
+  .phase-prog-label { font-size: 12px; color: #5E6C84; margin-bottom: 1.25rem; }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid #DFE1E6;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .chk {
+    width: 18px; height: 18px; border: 1.5px solid #DFE1E6; border-radius: 4px;
+    cursor: pointer; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; transition: background 0.15s, border-color 0.15s;
+  }
+  .chk.checked { background: #0052CC; border-color: #0052CC; }
+  .chk.checked::after { content: "✓"; color: #fff; font-size: 11px; font-weight: 700; }
+  .chk-label { font-size: 13px; color: #172B4D; line-height: 1.5; }
+  .chk-label.done { color: #97A0AF; text-decoration: line-through; }
+  .chk-role { display: block; font-size: 11px; color: #7A869A; margin-top: 2px; }
+
+  /* ── Role grid ── */
+  .role-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .role-card { background: #fff; border: 1px solid #DFE1E6; border-radius: 8px; padding: 1.25rem; }
+  .role-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #DFE1E6; }
+  .role-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .role-title { font-size: 14px; font-weight: 600; color: #172B4D; }
+  .role-sub { font-size: 12px; color: #5E6C84; }
+  .role-tasks { list-style: none; }
+  .role-tasks li {
+    font-size: 13px; color: #172B4D; padding: 6px 0;
+    border-bottom: 1px solid #F4F5F7;
+    display: flex; gap: 8px; align-items: flex-start; line-height: 1.4;
+  }
+  .role-tasks li:last-child { border-bottom: none; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: #4C9AFF; flex-shrink: 0; margin-top: 5px; }
+
+  /* ── Migration ── */
+  .mtab-row { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .mtab {
+    padding: 6px 16px; font-size: 13px; font-weight: 500;
+    border: 1px solid #DFE1E6; border-radius: 20px; cursor: pointer;
+    color: #5E6C84; background: #fff; transition: all 0.15s;
+  }
+  .mtab.active { background: #DEEBFF; color: #0052CC; border-color: #4C9AFF; }
+  .mig-content { display: none; }
+  .mig-content.active { display: block; }
+  .step-list { list-style: none; counter-reset: steps; }
+  .step-list li {
+    counter-increment: steps;
+    display: flex; gap: 12px; padding: 11px 0;
+    border-bottom: 1px solid #F4F5F7; font-size: 13px; line-height: 1.6; color: #172B4D;
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #DEEBFF; color: #0052CC;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .tip-box {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: #E3FCEF; border-left: 3px solid #36B37E;
+    border-radius: 4px; padding: 0.75rem 1rem;
+    font-size: 13px; color: #006644; margin-top: 1rem; line-height: 1.5;
+  }
+  .warn-box {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: #FFFAE6; border-left: 3px solid #FF991F;
+    border-radius: 4px; padding: 0.75rem 1rem;
+    font-size: 13px; color: #7A4100; margin-top: 1rem; line-height: 1.5;
+  }
+
+  /* ── Config ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .config-section { margin-bottom: 1.5rem; }
+  .config-section h4 {
+    font-size: 13px; font-weight: 600; color: #172B4D;
+    margin-bottom: 0.75rem; padding-bottom: 6px;
+    border-bottom: 1px solid #DFE1E6;
+  }
+  .config-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid #F4F5F7; font-size: 13px; gap: 1rem;
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-key { color: #5E6C84; flex-shrink: 0; }
+  .config-val { color: #172B4D; text-align: right; font-size: 12px; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-blue { background: #DEEBFF; color: #0747A6; }
+  .badge-green { background: #E3FCEF; color: #006644; }
+  .badge-amber { background: #FFFAE6; color: #7A4100; }
+  code {
+    background: #F4F5F7; padding: 1px 5px; border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; color: #172B4D;
+  }
+
+  /* ── Metrics ── */
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 2rem; }
+  .metric-card { background: #F4F5F7; border-radius: 8px; padding: 1rem; }
+  .metric-label { font-size: 12px; color: #5E6C84; margin-bottom: 5px; }
+  .metric-value { font-size: 22px; font-weight: 700; color: #172B4D; margin-bottom: 3px; }
+  .metric-sub { font-size: 11px; color: #7A869A; line-height: 1.4; }
+
+  /* ── Confluence embed guide ── */
+  .embed-section { background: #F4F5F7; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
+  .embed-section h3 { font-size: 15px; font-weight: 600; color: #172B4D; margin-bottom: 1rem; }
+  .embed-steps { list-style: none; counter-reset: embed-steps; }
+  .embed-steps li {
+    counter-increment: embed-steps; display: flex; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid #DFE1E6; font-size: 13px; line-height: 1.6;
+  }
+  .embed-steps li:last-child { border-bottom: none; }
+  .embed-num {
+    width: 24px; height: 24px; border-radius: 50%; background: #0052CC; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  kbd {
+    background: #fff; border: 1px solid #DFE1E6; border-radius: 3px;
+    padding: 1px 6px; font-size: 11px; font-family: inherit; color: #172B4D;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .phase-grid { grid-template-columns: repeat(2, 1fr); }
+    .role-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="kit-wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">Testing Center of Excellence</div>
+    <h1>Xray Cloud onboarding kit</h1>
+    <p>A step-by-step self-service guide for project teams adopting Xray on Jira Cloud. Follow the four phases, complete the checklist, and your project will be fully onboarded with reporting live.</p>
+  </div>
+
+  <!-- Progress banner -->
+  <div class="progress-banner">
+    <div class="prog-ring-wrap">
+      <svg width="56" height="56" viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r="22" fill="none" stroke="#DFE1E6" stroke-width="6"/>
+        <circle cx="28" cy="28" r="22" fill="none" stroke="#0052CC" stroke-width="6"
+          stroke-dasharray="138.2" stroke-dashoffset="138.2"
+          id="overall-ring" stroke-linecap="round"/>
+      </svg>
+      <div class="prog-ring-label" id="overall-pct">0%</div>
+    </div>
+    <div>
+      <h3>Your onboarding progress</h3>
+      <p>Check off tasks as you complete them. Progress is tracked across all phases. <strong id="overall-count">0 of 22</strong> tasks done.</p>
+    </div>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('phases', this)">Onboarding phases</button>
+    <button class="nav-tab" onclick="switchTab('roles', this)">Role guide</button>
+    <button class="nav-tab" onclick="switchTab('migration', this)">Migration paths</button>
+    <button class="nav-tab" onclick="switchTab('config', this)">Xray config reference</button>
+    <button class="nav-tab" onclick="switchTab('metrics', this)">Metrics &amp; reporting</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 1: Onboarding phases
+  ═══════════════════════════════════════════ -->
+  <div id="tab-phases" class="tab-content active">
+    <p class="section-label">4 phases to full adoption</p>
+    <div class="phase-grid">
+      <div class="phase-card active" id="pc-1" onclick="showPhase(1)">
+        <div class="phase-num">Phase 1</div>
+        <div class="phase-name">Setup &amp; access</div>
+        <div class="phase-desc">Jira project config, roles, permissions</div>
+      </div>
+      <div class="phase-card" id="pc-2" onclick="showPhase(2)">
+        <div class="phase-num">Phase 2</div>
+        <div class="phase-name">Test assets</div>
+        <div class="phase-desc">Create or migrate test cases &amp; plans</div>
+      </div>
+      <div class="phase-card" id="pc-3" onclick="showPhase(3)">
+        <div class="phase-num">Phase 3</div>
+        <div class="phase-name">Link &amp; trace</div>
+        <div class="phase-desc">Connect tests to requirements &amp; defects</div>
+      </div>
+      <div class="phase-card" id="pc-4" onclick="showPhase(4)">
+        <div class="phase-num">Phase 4</div>
+        <div class="phase-name">Reporting live</div>
+        <div class="phase-desc">Dashboards, metrics &amp; CoE sign-off</div>
+      </div>
+    </div>
+    <div id="phase-detail"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 2: Role guide
+  ═══════════════════════════════════════════ -->
+  <div id="tab-roles" class="tab-content">
+    <p class="section-label">What each role needs to do</p>
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-avatar" style="background:#DEEBFF; color:#0747A6;">PM</div>
+          <div>
+            <div class="role-title">Project manager</div>
+            <div class="role-sub">Owns onboarding timeline &amp; sign-off</div>
+          </div>
+        </div>
+        <ul class="role-tasks">
+          <li><span class="dot"></span>Raise Jira project setup request using CoE template</li>
+          <li><span class="dot"></span>Assign QA lead and dev lead to Xray roles in project settings</li>
+          <li><span class="dot"></span>Set onboarding completion milestone in the project plan</li>
+          <li><span class="dot"></span>Review and sign off on the coverage dashboard</li>
+          <li><span class="dot"></span>Confirm all 5 CoE metrics are being tracked and visible</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-avatar" style="background:#E3FCEF; color:#006644;">QA</div>
+          <div>
+            <div class="role-title">QA engineer</div>
+            <div class="role-sub">Leads test asset creation &amp; execution</div>
+          </div>
+        </div>
+        <ul class="role-tasks">
+          <li><span class="dot"></span>Create test repository folder structure in Xray</li>
+          <li><span class="dot"></span>Write or import all manual test cases</li>
+          <li><span class="dot"></span>Define BDD/Gherkin scenarios and link feature files</li>
+          <li><span class="dot"></span>Create test plans and test executions per sprint</li>
+          <li><span class="dot"></span>Link all test cases to user stories / requirements</li>
+          <li><span class="dot"></span>Configure CI integration for automated test results</li>
+          <li><span class="dot"></span>Set up traceability matrix and requirements coverage report</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-avatar" style="background:#FFFAE6; color:#7A4100;">DL</div>
+          <div>
+            <div class="role-title">Dev lead / tech lead</div>
+            <div class="role-sub">Owns automation pipeline integration</div>
+          </div>
+        </div>
+        <ul class="role-tasks">
+          <li><span class="dot"></span>Set up CI/CD pipeline to push results to Xray</li>
+          <li><span class="dot"></span>Configure JUnit / Cucumber reporter for Xray Cloud API</li>
+          <li><span class="dot"></span>Generate Xray API token from Jira Cloud App Settings</li>
+          <li><span class="dot"></span>Validate automated test results appear in Xray executions</li>
+          <li><span class="dot"></span>Link automated tests to corresponding Xray test issues</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-avatar" style="background:#FFE2DD; color:#BF2600;">SM</div>
+          <div>
+            <div class="role-title">Scrum master</div>
+            <div class="role-sub">Embeds Xray into sprint ceremonies</div>
+          </div>
+        </div>
+        <ul class="role-tasks">
+          <li><span class="dot"></span>Add Xray test plan creation to sprint planning checklist</li>
+          <li><span class="dot"></span>Include test execution status in sprint review</li>
+          <li><span class="dot"></span>Add coverage report review to definition of done</li>
+          <li><span class="dot"></span>Raise blockers to CoE async support channel</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 3: Migration paths
+  ═══════════════════════════════════════════ -->
+  <div id="tab-migration" class="tab-content">
+    <p class="section-label">Choose your migration path</p>
+    <div class="mtab-row">
+      <button class="mtab active" onclick="switchMig('zephyr', this)">From Zephyr</button>
+      <button class="mtab" onclick="switchMig('excel', this)">From Excel / Sheets</button>
+      <button class="mtab" onclick="switchMig('new', this)">No prior tool</button>
+    </div>
+
+    <div id="mig-zephyr" class="mig-content active">
+      <ol class="step-list">
+        <li><div class="step-num">1</div><div>Export all test cases from Zephyr Scale or Squad using the built-in CSV export (Tests &gt; Export). Include fields: name, steps, expected result, labels, priority.</div></li>
+        <li><div class="step-num">2</div><div>Clean the CSV: normalise step format to Xray's <code>Action | Data | Expected Result</code> columns. Remove Zephyr-specific fields such as cycle ID and version ID.</div></li>
+        <li><div class="step-num">3</div><div>In Xray Cloud, go to the Test issue type &gt; Import &gt; CSV. Map columns to Xray fields in the mapping UI. Run a test import on 10 rows first before doing the full batch.</div></li>
+        <li><div class="step-num">4</div><div>Re-create test sets and test plans in Xray. Zephyr cycles map to Xray Test Plans; Zephyr test sets map to Xray Test Sets.</div></li>
+        <li><div class="step-num">5</div><div>Re-link migrated tests to Jira stories using the "Tests" panel on each story, or bulk-link via the Xray import API for large volumes.</div></li>
+        <li><div class="step-num">6</div><div>Validate coverage by opening the Requirements Coverage gadget on your Jira dashboard and confirming all requirement-to-test links are intact.</div></li>
+      </ol>
+      <div class="warn-box">
+        <span>⚠</span>
+        <span>Zephyr execution history does not migrate. Archive your Zephyr project for historical reference but do not attempt to import past execution runs into Xray.</span>
+      </div>
+    </div>
+
+    <div id="mig-excel" class="mig-content">
+      <ol class="step-list">
+        <li><div class="step-num">1</div><div>Standardise your spreadsheet to four columns: <code>Test Name | Step Action | Step Data | Expected Result</code>. Each row is one step; repeat the test name across rows for multi-step tests.</div></li>
+        <li><div class="step-num">2</div><div>Add a <code>Labels</code> column for test type tags: <code>manual</code>, <code>regression</code>, <code>smoke</code>, <code>exploratory</code>. These map directly to Xray labels on import.</div></li>
+        <li><div class="step-num">3</div><div>Save as UTF-8 CSV. Remove merged cells, colour formatting, and any formula-driven cells before exporting.</div></li>
+        <li><div class="step-num">4</div><div>Import via the Xray Cloud CSV importer. Select "Create Test issues" and map your columns to Xray fields in the mapping interface.</div></li>
+        <li><div class="step-num">5</div><div>Assign imported tests to Test Repository folders matching your feature areas (for example: /Authentication, /Checkout, /Reporting).</div></li>
+        <li><div class="step-num">6</div><div>Link tests to epics or stories manually using the Tests panel on each story, or use Xray's bulk link feature under Test Plans.</div></li>
+      </ol>
+      <div class="tip-box">
+        <span>✓</span>
+        <span>If your sheet has more than 200 tests, split by feature area and import in batches. This makes it easier to catch and fix column-mapping errors early.</span>
+      </div>
+    </div>
+
+    <div id="mig-new" class="mig-content">
+      <ol class="step-list">
+        <li><div class="step-num">1</div><div>Start by mapping your Jira epics and stories. Every story with acceptance criteria is a candidate for test coverage. Export your backlog to get the full picture before writing tests.</div></li>
+        <li><div class="step-num">2</div><div>Create a Test Repository structure in Xray that mirrors your application modules (e.g. /Module A, /Module B). This becomes the permanent home for all test cases across releases.</div></li>
+        <li><div class="step-num">3</div><div>Write manual test cases using the Test issue type in Xray. Aim for one test case per acceptance criterion on your current sprint stories to start.</div></li>
+        <li><div class="step-num">4</div><div>For BDD teams: write Gherkin scenarios in Xray as Cucumber-type tests. Use the Xray &lt;&gt; Git integration to sync .feature files to your repository automatically.</div></li>
+        <li><div class="step-num">5</div><div>Create your first Test Plan for the current sprint. Add the relevant test cases. This generates your first Test Execution record and begins tracking run history.</div></li>
+        <li><div class="step-num">6</div><div>Link test cases to user stories via the "Tests" panel on each story. Run your first execution and verify the Coverage gadget reflects test status on the story.</div></li>
+      </ol>
+      <div class="tip-box">
+        <span>✓</span>
+        <span>Don't try to write tests for the entire backlog upfront. Start with the current sprint and the top 3 highest-risk features, then expand coverage progressively each sprint.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 4: Config reference
+  ═══════════════════════════════════════════ -->
+  <div id="tab-config" class="tab-content">
+    <p class="section-label">Xray Cloud configuration reference</p>
+    <div class="two-col">
+      <div>
+        <div class="config-section">
+          <h4>Issue types (auto-added by Xray)</h4>
+          <div class="config-row"><span class="config-key">Test</span><span class="config-val"><span class="badge badge-blue">Auto-added</span></span></div>
+          <div class="config-row"><span class="config-key">Test execution</span><span class="config-val"><span class="badge badge-blue">Auto-added</span></span></div>
+          <div class="config-row"><span class="config-key">Test plan</span><span class="config-val"><span class="badge badge-blue">Auto-added</span></span></div>
+          <div class="config-row"><span class="config-key">Test set</span><span class="config-val"><span class="badge badge-blue">Auto-added</span></span></div>
+          <div class="config-row"><span class="config-key">Precondition</span><span class="config-val"><span class="badge badge-blue">Auto-added</span></span></div>
+        </div>
+        <div class="config-section">
+          <h4>Permissions &amp; role mapping</h4>
+          <div class="config-row"><span class="config-key">Xray admin</span><span class="config-val">Jira project admin</span></div>
+          <div class="config-row"><span class="config-key">Test designer</span><span class="config-val">QA engineer role</span></div>
+          <div class="config-row"><span class="config-key">Test executor</span><span class="config-val">QA + Dev leads</span></div>
+          <div class="config-row"><span class="config-key">Viewer</span><span class="config-val">PM, Scrum master</span></div>
+        </div>
+        <div class="config-section">
+          <h4>Jira dashboard gadgets to add</h4>
+          <div class="config-row"><span class="config-key">Requirements coverage</span><span class="config-val">Xray Requirements Coverage</span></div>
+          <div class="config-row"><span class="config-key">Execution status</span><span class="config-val">Xray Test Execution Results</span></div>
+          <div class="config-row"><span class="config-key">Sprint health</span><span class="config-val">Xray Test Plan Board</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="config-section">
+          <h4>Test types to enable</h4>
+          <div class="config-row"><span class="config-key">Manual</span><span class="config-val"><span class="badge badge-green">Required</span></span></div>
+          <div class="config-row"><span class="config-key">Cucumber / BDD</span><span class="config-val"><span class="badge badge-green">Required</span></span></div>
+          <div class="config-row"><span class="config-key">Generic (automated)</span><span class="config-val"><span class="badge badge-green">Required</span></span></div>
+          <div class="config-row"><span class="config-key">Exploratory session</span><span class="config-val"><span class="badge badge-green">Required</span></span></div>
+        </div>
+        <div class="config-section">
+          <h4>CI/CD integration (automated tests)</h4>
+          <div class="config-row"><span class="config-key">API endpoint</span><span class="config-val"><code>POST /api/v2/import/execution</code></span></div>
+          <div class="config-row"><span class="config-key">Authentication</span><span class="config-val">Client ID + Secret (API token)</span></div>
+          <div class="config-row"><span class="config-key">Supported formats</span><span class="config-val">JUnit XML, Cucumber JSON, Behave</span></div>
+          <div class="config-row"><span class="config-key">Token location</span><span class="config-val">Xray Cloud App Settings &gt; API Keys</span></div>
+        </div>
+        <div class="config-section">
+          <h4>BDD / Gherkin setup</h4>
+          <div class="config-row"><span class="config-key">Feature file sync</span><span class="config-val">Xray &lt;&gt; Git integration</span></div>
+          <div class="config-row"><span class="config-key">Test type</span><span class="config-val">Cucumber issue type in Xray</span></div>
+          <div class="config-row"><span class="config-key">Runner support</span><span class="config-val">Cucumber JS, Ruby, Java, Python</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 5: Metrics & reporting
+  ═══════════════════════════════════════════ -->
+  <div id="tab-metrics" class="tab-content">
+    <p class="section-label">CoE tracked metrics — all 5 must be live before sign-off</p>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Test execution pass rate</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">% of test runs marked PASS in Xray executions</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Requirements coverage</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">% of stories with at least 1 linked test case</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Defect density</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">Defects linked to test executions per sprint</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Test plan completion</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">% of test cases executed within the sprint plan</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Automation coverage</div>
+        <div class="metric-value">—</div>
+        <div class="metric-sub">% of test cases backed by automated execution</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h4>How to surface each metric in Jira</h4>
+      <div class="config-row">
+        <span class="config-key" style="min-width:200px;">Pass/fail rate</span>
+        <span class="config-val" style="text-align:left;">Xray Test Execution Results gadget → filter by project + sprint</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key" style="min-width:200px;">Requirements coverage</span>
+        <span class="config-val" style="text-align:left;">Xray Requirements Coverage gadget → set fix version or sprint label</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key" style="min-width:200px;">Defect density</span>
+        <span class="config-val" style="text-align:left;">Jira filter: issue type = Bug, linked to Test Execution, grouped by sprint</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key" style="min-width:200px;">Test plan completion</span>
+        <span class="config-val" style="text-align:left;">Test Plan Board gadget → view % executed vs total tests in the plan</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key" style="min-width:200px;">Automation coverage</span>
+        <span class="config-val" style="text-align:left;">Xray filter: Test type = Generic or Cucumber, execution status = PASS/FAIL</span>
+      </div>
+    </div>
+
+    <div class="tip-box" style="margin-top:1.25rem;">
+      <span>✓</span>
+      <span><strong>CoE sign-off criteria:</strong> All 4 onboarding phases complete + all 5 metric gadgets live on a shared Jira dashboard = project marked as adopted in the CoE tracker.</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       Confluence embed guide (always visible)
+  ═══════════════════════════════════════════ -->
+  <div class="embed-section" style="margin-top:3rem; border-top:2px solid #DFE1E6; padding-top:2rem; background:none;">
+    <p class="section-label">How to embed this kit in Confluence</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+      <div>
+        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin-bottom:0.75rem;">Option A — HTML macro (recommended)</h4>
+        <ol class="embed-steps">
+          <li><div class="embed-num">1</div><div>Open your Confluence page in edit mode.</div></li>
+          <li><div class="embed-num">2</div><div>Type <kbd>/</kbd> to open the macro menu, then search for <strong>HTML</strong>.</div></li>
+          <li><div class="embed-num">3</div><div>Insert the <strong>HTML macro</strong>. Paste the entire contents of this file into the macro body.</div></li>
+          <li><div class="embed-num">4</div><div>Click <kbd>Save</kbd>. The kit will render inline on the Confluence page.</div></li>
+          <li><div class="embed-num">5</div><div>Note: the HTML macro must be enabled in your Confluence admin settings under <strong>Security &gt; HTML macro</strong>.</div></li>
+        </ol>
+        <div class="tip-box" style="margin-top:1rem;">
+          <span>✓</span><span>Ask your Confluence admin to enable the HTML macro if it is not available in your instance.</span>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin-bottom:0.75rem;">Option B — iframe macro</h4>
+        <ol class="embed-steps">
+          <li><div class="embed-num">1</div><div>Host this HTML file on an internal web server or Confluence attachment URL.</div></li>
+          <li><div class="embed-num">2</div><div>In Confluence edit mode, type <kbd>/</kbd> and insert the <strong>iframe</strong> macro.</div></li>
+          <li><div class="embed-num">3</div><div>Set the URL to the hosted file path. Set height to <strong>900px</strong> for best display.</div></li>
+          <li><div class="embed-num">4</div><div>Save the page. The kit will load inside a scrollable iframe.</div></li>
+        </ol>
+        <div class="warn-box" style="margin-top:1rem;">
+          <span>⚠</span><span>The iframe domain must be allowlisted in Confluence's <strong>Allowlist</strong> settings for the embed to load.</span>
+        </div>
+        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin:1.25rem 0 0.75rem;">Option C — Confluence attachment</h4>
+        <ol class="embed-steps">
+          <li><div class="embed-num">1</div><div>Attach this HTML file directly to the Confluence page using the attachment panel.</div></li>
+          <li><div class="embed-num">2</div><div>Use the <strong>View File</strong> macro to display it inline, or link to it as a downloadable resource.</div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /kit-wrap -->
+
+<script>
+const phases = {
+  1: {
+    title: "Phase 1 — Setup & access",
+    items: [
+      { text: "Confirm Xray Cloud app is installed in your Jira Cloud instance", role: "PM / Jira Admin" },
+      { text: "Enable Xray issue types on your Jira project (Test, Test Plan, Test Execution, Test Set)", role: "Jira Admin" },
+      { text: "Assign team members to Xray roles: Test Designer, Test Executor, Viewer", role: "PM / Jira Admin" },
+      { text: "Generate Xray API key for CI integration via Xray Cloud App Settings → API Keys", role: "Dev Lead" },
+      { text: "Create Test Repository folder structure matching your application modules in Xray", role: "QA Engineer" }
+    ]
+  },
+  2: {
+    title: "Phase 2 — Test assets",
+    items: [
+      { text: "Complete migration of existing test cases (see Migration paths tab)", role: "QA Engineer" },
+      { text: "Write manual test cases in Xray for all current sprint stories", role: "QA Engineer" },
+      { text: "Create Cucumber-type tests for all BDD/Gherkin scenarios", role: "QA Engineer + Dev Lead" },
+      { text: "Create exploratory test sessions for high-risk feature areas", role: "QA Engineer" },
+      { text: "Organise all tests into Test Sets by feature area", role: "QA Engineer" },
+      { text: "Create first Test Plan for current sprint", role: "QA Engineer / Scrum Master" }
+    ]
+  },
+  3: {
+    title: "Phase 3 — Link & trace",
+    items: [
+      { text: "Link every test case to at least one Jira user story via the Tests panel", role: "QA Engineer" },
+      { text: "Configure CI pipeline to POST automated results to Xray Cloud API", role: "Dev Lead" },
+      { text: "Validate automated test results appear correctly in Xray test executions", role: "Dev Lead + QA" },
+      { text: "Link defects raised during execution to the relevant test execution record", role: "QA Engineer" },
+      { text: "Review traceability matrix and confirm no uncovered user stories remain", role: "QA Engineer + PM" }
+    ]
+  },
+  4: {
+    title: "Phase 4 — Reporting live",
+    items: [
+      { text: "Add Requirements Coverage gadget to Jira project dashboard", role: "QA Engineer / PM" },
+      { text: "Add Test Execution Results gadget to the project dashboard", role: "QA Engineer / PM" },
+      { text: "Add Test Plan Board gadget to the project dashboard", role: "QA Engineer / PM" },
+      { text: "Verify all 5 CoE metrics are visible and auto-updating on the dashboard", role: "PM" },
+      { text: "Share dashboard link with CoE async channel for adoption sign-off", role: "PM" },
+      { text: "Receive CoE adoption confirmation — project marked as onboarded in CoE tracker", role: "PM" }
+    ]
+  }
+};
+
+const state = {};
+const TOTAL = 22;
+
+function getKey(phase, idx) { return 'p' + phase + '_i' + idx; }
+
+function renderPhase(num) {
+  const p = phases[num];
+  const done = p.items.filter((_, i) => state[getKey(num, i)]).length;
+  const pct = Math.round((done / p.items.length) * 100);
+  let html = '<div class="phase-detail">';
+  html += '<h3>' + p.title + '</h3>';
+  html += '<div class="phase-prog-bar-wrap"><div class="phase-prog-bar" style="width:' + pct + '%"></div></div>';
+  html += '<p class="phase-prog-label">' + done + ' of ' + p.items.length + ' tasks complete</p>';
+  html += '<ul class="checklist">';
+  p.items.forEach(function(item, i) {
+    const k = getKey(num, i);
+    const checked = !!state[k];
+    html += '<li>';
+    html += '<div class="chk ' + (checked ? 'checked' : '') + '" onclick="toggle(' + num + ',' + i + ')"></div>';
+    html += '<div><span class="chk-label ' + (checked ? 'done' : '') + '">' + item.text + '</span>';
+    html += '<span class="chk-role">' + item.role + '</span></div>';
+    html += '</li>';
+  });
+  html += '</ul></div>';
+  document.getElementById('phase-detail').innerHTML = html;
+}
+
+function toggle(phase, idx) {
+  const k = getKey(phase, idx);
+  state[k] = !state[k];
+  renderPhase(phase);
+  updateOverall();
+}
+
+function updateOverall() {
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = Math.round((done / TOTAL) * 100);
+  document.getElementById('overall-pct').textContent = pct + '%';
+  document.getElementById('overall-count').textContent = done + ' of ' + TOTAL;
+  const circ = 2 * Math.PI * 22;
+  const offset = circ - (pct / 100) * circ;
+  document.getElementById('overall-ring').style.strokeDashoffset = offset;
+}
+
+function showPhase(num) {
+  [1,2,3,4].forEach(function(n) {
+    document.getElementById('pc-' + n).classList.toggle('active', n === num);
+  });
+  renderPhase(num);
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+function switchMig(name, el) {
+  document.querySelectorAll('.mig-content').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.mtab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('mig-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+renderPhase(1);
+updateOverall();
+</script>
+</body>
+</html>
