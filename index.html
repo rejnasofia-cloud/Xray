@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -205,6 +206,51 @@
     padding: 1px 6px; font-size: 11px; font-family: inherit; color: #172B4D;
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
   }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(9,30,66,0.45); z-index: 1000;
+    align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 10px; width: 100%; max-width: 560px;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(9,30,66,0.22);
+    animation: modalIn 0.18s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  .modal-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid #DFE1E6; gap: 1rem;
+  }
+  .modal-header h3 { font-size: 15px; font-weight: 700; color: #172B4D; line-height: 1.4; }
+  .modal-role-badge {
+    font-size: 11px; font-weight: 600; background: #DEEBFF; color: #0747A6;
+    padding: 2px 8px; border-radius: 10px; white-space: nowrap; margin-top: 2px; display: inline-block;
+  }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: #F4F5F7;
+    cursor: pointer; font-size: 16px; color: #5E6C84; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .modal-close:hover { background: #DFE1E6; }
+  .modal-body { padding: 1.25rem 1.5rem 1.5rem; }
+  .modal-why { font-size: 13px; color: #5E6C84; margin-bottom: 1.25rem; line-height: 1.6; }
+  .modal-steps-label { font-size: 11px; font-weight: 600; color: #7A869A; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .modal-steps { list-style: none; }
+  .modal-steps li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F4F5F7; font-size: 13px; line-height: 1.6; color: #172B4D; }
+  .modal-steps li:last-child { border-bottom: none; }
+  .modal-step-num {
+    width: 22px; height: 22px; border-radius: 50%; background: #DEEBFF; color: #0052CC;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+  .modal-tip { background: #E3FCEF; border-left: 3px solid #36B37E; border-radius: 4px; padding: 0.75rem 1rem; font-size: 13px; color: #006644; margin-top: 1rem; line-height: 1.5; }
+  .modal-warn { background: #FFFAE6; border-left: 3px solid #FF991F; border-radius: 4px; padding: 0.75rem 1rem; font-size: 13px; color: #7A4100; margin-top: 1rem; line-height: 1.5; }
+  .how-link { font-size: 11px; color: #0052CC; cursor: pointer; margin-left: 8px; text-decoration: underline; white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+  .how-link:hover { color: #0747A6; }
 
   /* ── Responsive ── */
   @media (max-width: 640px) {
@@ -535,6 +581,25 @@
 
 </div><!-- /kit-wrap -->
 
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-title"></h3>
+        <span class="modal-role-badge" id="modal-role"></span>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-why" id="modal-why"></p>
+      <div class="modal-steps-label">Step-by-step guide</div>
+      <ol class="modal-steps" id="modal-steps"></ol>
+      <div id="modal-note"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const phases = {
   1: {
@@ -580,6 +645,355 @@ const phases = {
     ]
   }
 };
+
+const guidance = {
+  'p1_i0': {
+    title: 'Confirm Xray Cloud app is installed in your Jira Cloud instance',
+    role: 'PM / Jira Admin',
+    why: 'Xray Cloud is a third-party app that must be installed on your Jira Cloud instance before any Xray issue types or features are available. Without this, no test management can happen.',
+    steps: [
+      'Log in to your Jira Cloud instance as a project admin or site admin.',
+      'Click the grid icon (⊞) in the top navigation bar and select <strong>Apps</strong>.',
+      'Click <strong>Explore more apps</strong> — this opens the Atlassian Marketplace.',
+      'Search for <strong>Xray Test Management for Jira</strong> in the search bar.',
+      'Select the Xray Cloud result (by Xpand IT) and click <strong>Try it free</strong> or <strong>Get app</strong>.',
+      'Follow the installation prompts. Once installed, you will see a new <strong>Xray</strong> section appear in the Jira left sidebar.',
+      'To confirm: go to <strong>Jira Settings → Apps → Manage apps</strong> and check Xray appears as "Enabled".'
+    ],
+    tip: 'If you don\'t have site admin rights, raise a request with your Jira administrator and share this link: https://marketplace.atlassian.com/apps/1211769/xray-test-management-for-jira'
+  },
+  'p1_i1': {
+    title: 'Enable Xray issue types on your Jira project',
+    role: 'Jira Admin',
+    why: 'Xray adds its own issue types (Test, Test Plan, Test Execution, Test Set, Precondition) to Jira. These must be added to your project\'s issue type scheme before your team can create any test assets.',
+    steps: [
+      'Go to your Jira project and click <strong>Project settings</strong> in the left sidebar.',
+      'Click <strong>Issue types</strong>.',
+      'Click <strong>Edit project issue type scheme</strong>.',
+      'You should see Xray issue types in the right-hand panel: Test, Test Plan, Test Execution, Test Set, Precondition.',
+      'Drag each Xray issue type from the right panel into the left panel (your project scheme).',
+      'Click <strong>Save</strong>.',
+      'Return to your project board — you should now be able to create issues of type "Test" from the Create button.'
+    ],
+    warn: 'If Xray issue types don\'t appear in the scheme editor, the Xray app may not be fully installed. Go back to Apps → Manage apps and confirm Xray status is "Enabled".'
+  },
+  'p1_i2': {
+    title: 'Assign team members to Xray roles',
+    role: 'PM / Jira Admin',
+    why: 'Xray uses role-based access to control who can create tests, run executions, and view reports. Assigning roles upfront prevents permission errors when the team starts working.',
+    steps: [
+      'Go to your Jira project → <strong>Project settings → People</strong>.',
+      'Click <strong>Add people</strong> and search for each team member by name or email.',
+      'Assign the following roles based on their function:',
+      '<strong>Test Designer</strong> → QA Engineers (can create and edit test cases)',
+      '<strong>Test Executor</strong> → QA Engineers + Dev Leads (can run test executions)',
+      '<strong>Viewer</strong> → Project Managers, Scrum Masters (read-only access to reports)',
+      'Click <strong>Save</strong> after each assignment.'
+    ],
+    tip: 'Xray roles are separate from Jira project roles. A team member must have both a Jira project role (e.g. Developer) AND an Xray role assigned to interact with test assets.'
+  },
+  'p1_i3': {
+    title: 'Generate Xray API key for CI integration',
+    role: 'Dev Lead',
+    why: 'The Xray Cloud API key (Client ID + Client Secret) is required to authenticate your CI/CD pipeline when pushing automated test results into Xray. Without it, automated results cannot be imported.',
+    steps: [
+      'Go to <strong>https://xray.cloud.getxray.app</strong> and log in with your Jira Cloud credentials.',
+      'Click your profile avatar in the top right → <strong>API Keys</strong>.',
+      'Click <strong>Create API Key</strong>.',
+      'Give the key a name (e.g. "CI Pipeline — Project XYZ") and click <strong>Generate</strong>.',
+      'Copy both the <strong>Client ID</strong> and <strong>Client Secret</strong> immediately — the secret is only shown once.',
+      'Store these securely in your CI/CD secrets manager (e.g. GitHub Secrets, Jenkins Credentials, Azure Key Vault).',
+      'Use these credentials in your pipeline to authenticate against: <code>POST https://xray.cloud.getxray.app/api/v2/authenticate</code>'
+    ],
+    warn: 'The Client Secret is shown only once at generation time. If you lose it, you must regenerate the key and update all pipeline references.'
+  },
+  'p1_i4': {
+    title: 'Create Test Repository folder structure in Xray',
+    role: 'QA Engineer',
+    why: 'The Test Repository is Xray\'s folder system for organising test cases. Setting it up to mirror your application modules makes tests easy to find, reuse, and report on.',
+    steps: [
+      'In Jira, click <strong>Xray</strong> in the left sidebar → <strong>Test Repository</strong>.',
+      'Select your project from the dropdown at the top.',
+      'Click the <strong>+</strong> icon to create a top-level folder. Name it after your first application module (e.g. "Authentication").',
+      'Create subfolders within each module as needed (e.g. Authentication → Login, Authentication → Password Reset).',
+      'Repeat for all major modules in your application.',
+      'Aim for a structure like: /Module → /Feature → /Sub-feature. Keep it to 3 levels maximum for clarity.'
+    ],
+    tip: 'Mirror your Jira epic structure if possible. This makes it easier to link test cases to epics and generate meaningful coverage reports by feature area.'
+  },
+  'p2_i0': {
+    title: 'Complete migration of existing test cases',
+    role: 'QA Engineer',
+    why: 'Any test cases that exist in Zephyr, Excel, or another tool must be migrated into Xray before you can link them to requirements or run them in Xray executions.',
+    steps: [
+      'Identify your migration source: Zephyr Scale/Squad, Excel/Google Sheets, or no prior tool.',
+      'For <strong>Zephyr</strong>: export as CSV from Tests → Export. Clean the file to match Xray\'s column format (Action | Data | Expected Result).',
+      'For <strong>Excel</strong>: standardise to 4 columns: Test Name | Step Action | Step Data | Expected Result. Save as UTF-8 CSV.',
+      'In Xray Cloud, go to the <strong>Test</strong> issue type → <strong>Import → CSV</strong>.',
+      'Map your CSV columns to Xray fields using the column mapping UI.',
+      'Run a test import with 10 rows first. Review the results before importing the full set.',
+      'After full import, assign tests to the correct Test Repository folders.',
+      'Validate that all imported tests appear correctly and have the right step structure.'
+    ],
+    tip: 'See the Migration Paths tab in this kit for detailed step-by-step guides specific to your source tool.'
+  },
+  'p2_i1': {
+    title: 'Write manual test cases in Xray for current sprint stories',
+    role: 'QA Engineer',
+    why: 'Manual test cases in Xray are linked directly to Jira stories, enabling real-time coverage tracking. Writing them in Xray (rather than externally) ensures they contribute to CoE metrics.',
+    steps: [
+      'Open a Jira user story that needs test coverage.',
+      'Scroll to the <strong>Tests</strong> panel on the right side of the story (added by Xray).',
+      'Click <strong>Create Test</strong>.',
+      'Set the test type to <strong>Manual</strong>.',
+      'Fill in the test summary (what is being tested) and add steps using the Step editor: Action → Test Data → Expected Result.',
+      'Add a label to categorise the test (e.g. "regression", "smoke", "sprint-XX").',
+      'Click <strong>Create</strong>. The test is now linked to the story automatically.',
+      'Repeat for each acceptance criterion on the story — aim for one test case per criterion.'
+    ],
+    tip: 'Write test steps in plain language that any team member can follow, not just the original author. This is especially important for tests that will be executed by developers or exploratory testers.'
+  },
+  'p2_i2': {
+    title: 'Create Cucumber-type tests for BDD/Gherkin scenarios',
+    role: 'QA Engineer + Dev Lead',
+    why: 'Cucumber-type tests in Xray store Gherkin scenarios (Given/When/Then) and can be synced to your Git repository as .feature files, enabling true BDD traceability from story to code to test result.',
+    steps: [
+      'In Xray, create a new Test issue and set the test type to <strong>Cucumber</strong>.',
+      'Write your Gherkin scenario in the Scenario editor using Given / When / Then syntax.',
+      'Save the test. It is now stored as a Cucumber test in Xray.',
+      'To sync with Git: go to <strong>Xray → Repository Sync</strong> and configure your Git integration (GitHub, GitLab, Bitbucket).',
+      'Set the sync direction: Xray → Git exports .feature files to your repo. Git → Xray imports results after CI runs.',
+      'In your CI pipeline, run Cucumber tests against the synced .feature files and publish results back to Xray using the API.',
+      'Validate that executed Gherkin scenarios appear as PASS/FAIL in the corresponding Xray Test Execution.'
+    ],
+    warn: 'Cucumber test type requires the Gherkin syntax to be valid. Xray will reject scenarios with syntax errors. Use a Gherkin linter in your IDE before creating tests in Xray.'
+  },
+  'p2_i3': {
+    title: 'Create exploratory test sessions for high-risk features',
+    role: 'QA Engineer',
+    why: 'Exploratory testing in Xray is tracked as a structured session with a charter, time box, and notes. This turns ad-hoc exploration into traceable CoE data.',
+    steps: [
+      'In Xray, go to <strong>Test Execution</strong> → create a new Test Execution issue.',
+      'Set the test type to <strong>Exploratory</strong>.',
+      'Define the session charter: what feature are you exploring, what risks are you looking for?',
+      'Set a time box (e.g. 60 minutes) and assign it to the QA engineer.',
+      'During the session, log notes, observations, and any bugs found directly in the session record.',
+      'At the end, mark the session as PASS (no critical issues), FAIL (critical issues found), or BLOCKED.',
+      'Link any defects found to the exploratory session record for traceability.'
+    ],
+    tip: 'Focus exploratory sessions on the top 3 highest-risk features per sprint — those with recent code changes, complex logic, or previous bug history.'
+  },
+  'p2_i4': {
+    title: 'Organise all tests into Test Sets by feature area',
+    role: 'QA Engineer',
+    why: 'Test Sets are reusable groupings of test cases in Xray. Organising tests into sets by feature area makes it fast to build Test Plans each sprint without hunting for individual tests.',
+    steps: [
+      'In Jira, create a new issue of type <strong>Test Set</strong>.',
+      'Name it after the feature area (e.g. "Test Set — Authentication", "Test Set — Checkout").',
+      'Open the Test Set and click <strong>Add Tests</strong>.',
+      'Search for and add all test cases that belong to this feature area.',
+      'Repeat for each major feature area in your application.',
+      'When creating a sprint Test Plan, add entire Test Sets rather than individual tests — this saves significant time.'
+    ],
+    tip: 'A good rule of thumb: create one Test Set per Jira epic. This aligns test organisation with your backlog structure and makes coverage reporting by epic straightforward.'
+  },
+  'p2_i5': {
+    title: 'Create first Test Plan for the current sprint',
+    role: 'QA Engineer / Scrum Master',
+    why: 'A Test Plan in Xray is the sprint-level container for all testing activity. It groups test cases, tracks execution progress, and generates the Test Plan Board — one of the 5 CoE metrics.',
+    steps: [
+      'In Jira, create a new issue of type <strong>Test Plan</strong>.',
+      'Name it using a consistent convention (e.g. "Test Plan — Sprint 23 — Project XYZ").',
+      'Set the Fix Version or Sprint field to match the current sprint.',
+      'Click <strong>Add Tests</strong> and add all test cases relevant to this sprint (individual tests or full Test Sets).',
+      'Assign the Test Plan to the QA lead responsible for the sprint.',
+      'Click <strong>Create Test Execution</strong> from within the Test Plan to generate the execution record.',
+      'Share the Test Plan link with the Scrum Master to include in sprint ceremonies.'
+    ],
+    tip: 'Create the Test Plan at the start of sprint planning, not at the end. This way the team can reference test coverage as they estimate and commit to stories.'
+  },
+  'p3_i0': {
+    title: 'Link every test case to at least one Jira user story',
+    role: 'QA Engineer',
+    why: 'Linking tests to stories is what enables the Requirements Coverage metric — one of the 5 mandatory CoE metrics. Without links, Xray cannot show which stories are covered and which are not.',
+    steps: [
+      'Open a Jira user story.',
+      'Scroll to the <strong>Tests</strong> panel on the right side (Xray adds this automatically).',
+      'Click <strong>Add existing test</strong> and search for the relevant test case by name or label.',
+      'Select the test and click <strong>Add</strong>. The link is now established.',
+      'To bulk-link: open a Test Plan → select multiple tests → use <strong>Link to Requirement</strong> to link them all to a story at once.',
+      'Alternatively, open the test case itself → go to the <strong>Issue Links</strong> section → link it to the story using the "tests" link type.',
+      'After linking, check the story\'s Tests panel shows the correct tests and their execution status.'
+    ],
+    warn: 'The "tests" link type is Xray-specific. Do not use generic Jira link types like "relates to" or "blocks" — these do not feed into the Requirements Coverage report.'
+  },
+  'p3_i1': {
+    title: 'Configure CI pipeline to POST automated results to Xray Cloud API',
+    role: 'Dev Lead',
+    why: 'Automated test results only appear in Xray if your CI pipeline explicitly sends them via the Xray API after each test run. Without this, automation coverage and pass/fail metrics will be missing.',
+    steps: [
+      'Retrieve your Xray API Client ID and Secret (generated in Phase 1).',
+      'In your CI pipeline (GitHub Actions, Jenkins, Azure DevOps, etc.), add a step after your test run to authenticate with Xray: <code>POST https://xray.cloud.getxray.app/api/v2/authenticate</code> using your Client ID and Secret. This returns a Bearer token.',
+      'Use the token to submit results: <code>POST https://xray.cloud.getxray.app/api/v2/import/execution</code>',
+      'For JUnit XML results: use the endpoint <code>/import/execution/junit</code> and attach the XML report file.',
+      'For Cucumber JSON results: use <code>/import/execution/cucumber</code> and attach the JSON report.',
+      'Include the Jira project key and Test Plan key in the request body so results are linked to the correct plan.',
+      'Run the pipeline and validate results appear in Xray under the specified Test Execution.'
+    ],
+    tip: 'Xray provides ready-made CI integration examples for GitHub Actions, Jenkins, and GitLab CI in their documentation at: https://docs.getxray.app/display/XRAYCLOUD/Integration+with+CI/CD'
+  },
+  'p3_i2': {
+    title: 'Validate automated test results appear in Xray test executions',
+    role: 'Dev Lead + QA',
+    why: 'After configuring the CI integration, you must verify the results are actually landing correctly in Xray before relying on them for CoE reporting.',
+    steps: [
+      'Trigger a CI pipeline run (push a commit or run manually).',
+      'After the pipeline completes, go to Xray in Jira → <strong>Test Executions</strong>.',
+      'Open the Test Execution that the pipeline targeted.',
+      'Verify that each automated test appears with a PASS, FAIL, or ERROR status.',
+      'Check that the execution timestamp matches the CI run time.',
+      'Open one FAIL result and confirm the failure message and stack trace are visible.',
+      'If results are missing: check the CI pipeline logs for API errors, verify the Bearer token step succeeded, and confirm the project key in the API payload matches your Jira project.'
+    ],
+    warn: 'A common issue is a mismatch between the test names in the JUnit/Cucumber report and the test case names in Xray. Xray matches results by test name — if they differ, results will not link correctly.'
+  },
+  'p3_i3': {
+    title: 'Link defects raised during execution to test execution records',
+    role: 'QA Engineer',
+    why: 'Linking defects to test executions enables the Defect Density metric and creates a traceable chain from test failure → bug → fix → retest. This is essential for CoE reporting.',
+    steps: [
+      'When a test fails during execution, open the Test Execution record in Xray.',
+      'Click the failing test step or test result.',
+      'Click <strong>Create Defect</strong> or <strong>Link Defect</strong> in the execution panel.',
+      'If creating new: a Jira Bug issue is created automatically and linked to the execution.',
+      'If linking existing: search for the existing bug by issue key and add the link.',
+      'The defect will now appear in the Test Execution record and in the Requirements Coverage report under the linked story.',
+      'When the bug is fixed and the test re-run passes, update the test execution status to PASS.'
+    ],
+    tip: 'Always link defects at the test step level, not just at the test case level. This gives more precise data on which exact step failed and which specific behaviour needs fixing.'
+  },
+  'p3_i4': {
+    title: 'Review traceability matrix and confirm no uncovered stories remain',
+    role: 'QA Engineer + PM',
+    why: 'The traceability matrix shows which user stories have test coverage and which do not. Reviewing it before Phase 4 ensures your Requirements Coverage metric will be meaningful.',
+    steps: [
+      'In Jira, go to <strong>Xray → Reports → Traceability Matrix</strong>.',
+      'Set the filter to your project and current fix version or sprint.',
+      'The matrix shows each requirement (story) and its linked tests with execution status.',
+      'Look for any stories marked as <strong>UNCOVERED</strong> (no linked tests).',
+      'For each uncovered story: either create a test case and link it, or document a deliberate decision not to test it (e.g. out of scope).',
+      'Re-run the report until all in-scope stories show at least one linked test.',
+      'Export the matrix as a PDF or screenshot for the CoE sign-off record.'
+    ],
+    tip: 'It is acceptable to have stories with no tests if they are explicitly out of scope (e.g. infrastructure stories, documentation tasks). Add a label "no-test-required" to these stories so the coverage gap is intentional and documented.'
+  },
+  'p4_i0': {
+    title: 'Add Requirements Coverage gadget to Jira project dashboard',
+    role: 'QA Engineer / PM',
+    why: 'The Requirements Coverage gadget visualises what % of your stories have linked, executed tests. It is one of the 5 mandatory CoE metrics and must be on a shared dashboard for sign-off.',
+    steps: [
+      'Go to your Jira project and click <strong>Project pages</strong> or navigate to the project dashboard.',
+      'Click <strong>Edit dashboard</strong> (pencil icon).',
+      'Click <strong>Add gadget</strong>.',
+      'Search for <strong>Xray Requirements Coverage</strong> and click Add.',
+      'Configure the gadget: set the project, fix version or sprint label, and requirement issue type (Story).',
+      'Click <strong>Save</strong>. The gadget will now show a donut chart of covered vs uncovered stories.',
+      'Make the dashboard shareable: click <strong>Share</strong> and set visibility to your project team.'
+    ]
+  },
+  'p4_i1': {
+    title: 'Add Test Execution Results gadget to the project dashboard',
+    role: 'QA Engineer / PM',
+    why: 'This gadget shows the pass/fail breakdown of all test executions in your project — the primary CoE metric for test execution health.',
+    steps: [
+      'On your Jira dashboard in Edit mode, click <strong>Add gadget</strong>.',
+      'Search for <strong>Xray Test Execution Results</strong> and click Add.',
+      'Configure: set the project, filter by current sprint or fix version.',
+      'Choose display type: Pie chart shows overall pass/fail split; Bar chart shows trend over time.',
+      'Click <strong>Save</strong>.',
+      'Position the gadget prominently on the dashboard — this is the most-checked metric in sprint reviews.'
+    ],
+    tip: 'Set the gadget to filter by the current sprint label so it updates automatically each sprint without reconfiguration.'
+  },
+  'p4_i2': {
+    title: 'Add Test Plan Board gadget to the project dashboard',
+    role: 'QA Engineer / PM',
+    why: 'The Test Plan Board gadget shows execution progress within a specific Test Plan — how many tests have been run vs total planned. This drives the Test Plan Completion % CoE metric.',
+    steps: [
+      'On your Jira dashboard in Edit mode, click <strong>Add gadget</strong>.',
+      'Search for <strong>Xray Test Plan Board</strong> and click Add.',
+      'Configure: select the current sprint\'s Test Plan from the dropdown.',
+      'The gadget will show a progress bar of executed vs total tests, with PASS/FAIL/TODO breakdown.',
+      'Click <strong>Save</strong>.',
+      'Update the gadget configuration at the start of each new sprint to point to the new Test Plan.'
+    ],
+    warn: 'This gadget is tied to a specific Test Plan. You must manually update it each sprint to point to the new sprint\'s Test Plan. Set a reminder in your sprint planning checklist.'
+  },
+  'p4_i3': {
+    title: 'Verify all 5 CoE metrics are visible and auto-updating',
+    role: 'PM',
+    why: 'Before requesting CoE sign-off, all 5 metrics must be confirmed as live, accurate, and auto-updating. A static screenshot is not sufficient — the CoE will check the live dashboard.',
+    steps: [
+      'Open your shared Jira dashboard.',
+      'Confirm <strong>Test Execution Pass Rate</strong>: Test Execution Results gadget shows PASS/FAIL data.',
+      'Confirm <strong>Requirements Coverage</strong>: Requirements Coverage gadget shows % of stories covered.',
+      'Confirm <strong>Defect Density</strong>: create a Jira filter for Bug issues linked to Test Executions and add it as a filter gadget on the dashboard.',
+      'Confirm <strong>Test Plan Completion %</strong>: Test Plan Board gadget shows progress for the current sprint plan.',
+      'Confirm <strong>Automation Coverage %</strong>: add a Jira filter gadget filtering tests by type = Generic or Cucumber with PASS/FAIL status.',
+      'Trigger a CI run and check that results update in the gadgets within 5 minutes.',
+      'Take a screenshot of the fully populated dashboard for your CoE submission record.'
+    ]
+  },
+  'p4_i4': {
+    title: 'Share dashboard link with CoE async channel for sign-off',
+    role: 'PM',
+    why: 'The CoE reviews the live dashboard to confirm all 4 phases are complete and all 5 metrics are active. Sharing the link in the async channel starts the official sign-off process.',
+    steps: [
+      'On your Jira dashboard, click the <strong>Share</strong> button.',
+      'Set access to <strong>Anyone with the link</strong> (or the specific CoE team members).',
+      'Copy the dashboard URL.',
+      'Post the link in the CoE async support channel with the message: "Project [name] requesting onboarding sign-off. Dashboard: [link]. All 4 phases complete, all 5 metrics live."',
+      'The CoE will review within 2–3 business days and confirm adoption in the CoE tracker.',
+      'Once confirmed, your project is officially marked as onboarded.'
+    ],
+    tip: 'Before posting, do a final self-check: all 22 checklist tasks ticked, all 3 gadgets on the dashboard, and at least one full sprint\'s worth of test execution data visible.'
+  }
+};
+
+function openModal(key) {
+  const g = guidance[key];
+  if (!g) return;
+  document.getElementById('modal-title').textContent = g.title;
+  document.getElementById('modal-role').textContent = g.role;
+  document.getElementById('modal-why').textContent = g.why;
+  const stepsEl = document.getElementById('modal-steps');
+  stepsEl.innerHTML = g.steps.map(function(s) {
+    return '<li><div class="modal-step-num">' + (g.steps.indexOf(s) + 1) + '</div><div>' + s + '</div></li>';
+  }).join('');
+  const noteEl = document.getElementById('modal-note');
+  if (g.tip) {
+    noteEl.innerHTML = '<div class="modal-tip"><strong>Tip:</strong> ' + g.tip + '</div>';
+  } else if (g.warn) {
+    noteEl.innerHTML = '<div class="modal-warn"><strong>Note:</strong> ' + g.warn + '</div>';
+  } else {
+    noteEl.innerHTML = '';
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModalDirect();
+});
 
 const STORAGE_KEY = 'xray_onboarding_progress';
 const TOTAL = 22;
@@ -642,9 +1056,13 @@ function renderPhase(num) {
   p.items.forEach(function(item, i) {
     const k = getKey(num, i);
     const checked = !!state[k];
+    const hasGuide = !!guidance[k];
     html += '<li>';
     html += '<div class="chk ' + (checked ? 'checked' : '') + '" onclick="toggle(' + num + ',' + i + ')"></div>';
-    html += '<div><span class="chk-label ' + (checked ? 'done' : '') + '">' + item.text + '</span>';
+    html += '<div style="flex:1;"><span class="chk-label ' + (checked ? 'done' : '') + '">' + item.text + '</span>';
+    if (hasGuide) {
+      html += '<span class="how-link" onclick="openModal(\'' + k + '\')">How to do this ›</span>';
+    }
     html += '<span class="chk-role">' + item.role + '</span></div>';
     html += '</li>';
   });
