@@ -200,20 +200,6 @@
   .metric-value { font-size: 22px; font-weight: 700; color: #172B4D; margin-bottom: 3px; }
   .metric-sub { font-size: 11px; color: #7A869A; line-height: 1.4; }
 
-  /* ── Confluence embed guide ── */
-  .embed-section { background: #F4F5F7; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
-  .embed-section h3 { font-size: 15px; font-weight: 600; color: #172B4D; margin-bottom: 1rem; }
-  .embed-steps { list-style: none; counter-reset: embed-steps; }
-  .embed-steps li {
-    counter-increment: embed-steps; display: flex; gap: 12px;
-    padding: 10px 0; border-bottom: 1px solid #DFE1E6; font-size: 13px; line-height: 1.6;
-  }
-  .embed-steps li:last-child { border-bottom: none; }
-  .embed-num {
-    width: 24px; height: 24px; border-radius: 50%; background: #0052CC; color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-  }
   kbd {
     background: #fff; border: 1px solid #DFE1E6; border-radius: 3px;
     padding: 1px 6px; font-size: 11px; font-family: inherit; color: #172B4D;
@@ -540,45 +526,6 @@
     <div class="tip-box" style="margin-top:1.25rem;">
       <span>✓</span>
       <span><strong>CoE sign-off criteria:</strong> All 4 onboarding phases complete + all 5 metric gadgets live on a shared Jira dashboard = project marked as adopted in the CoE tracker.</span>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════
-       Confluence embed guide (always visible)
-  ═══════════════════════════════════════════ -->
-  <div class="embed-section" style="margin-top:3rem; border-top:2px solid #DFE1E6; padding-top:2rem; background:none;">
-    <p class="section-label">How to embed this kit in Confluence</p>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
-      <div>
-        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin-bottom:0.75rem;">Option A — HTML macro (recommended)</h4>
-        <ol class="embed-steps">
-          <li><div class="embed-num">1</div><div>Open your Confluence page in edit mode.</div></li>
-          <li><div class="embed-num">2</div><div>Type <kbd>/</kbd> to open the macro menu, then search for <strong>HTML</strong>.</div></li>
-          <li><div class="embed-num">3</div><div>Insert the <strong>HTML macro</strong>. Paste the entire contents of this file into the macro body.</div></li>
-          <li><div class="embed-num">4</div><div>Click <kbd>Save</kbd>. The kit will render inline on the Confluence page.</div></li>
-          <li><div class="embed-num">5</div><div>Note: the HTML macro must be enabled in your Confluence admin settings under <strong>Security &gt; HTML macro</strong>.</div></li>
-        </ol>
-        <div class="tip-box" style="margin-top:1rem;">
-          <span>✓</span><span>Ask your Confluence admin to enable the HTML macro if it is not available in your instance.</span>
-        </div>
-      </div>
-      <div>
-        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin-bottom:0.75rem;">Option B — iframe macro</h4>
-        <ol class="embed-steps">
-          <li><div class="embed-num">1</div><div>Host this HTML file on an internal web server or Confluence attachment URL.</div></li>
-          <li><div class="embed-num">2</div><div>In Confluence edit mode, type <kbd>/</kbd> and insert the <strong>iframe</strong> macro.</div></li>
-          <li><div class="embed-num">3</div><div>Set the URL to the hosted file path. Set height to <strong>900px</strong> for best display.</div></li>
-          <li><div class="embed-num">4</div><div>Save the page. The kit will load inside a scrollable iframe.</div></li>
-        </ol>
-        <div class="warn-box" style="margin-top:1rem;">
-          <span>⚠</span><span>The iframe domain must be allowlisted in Confluence's <strong>Allowlist</strong> settings for the embed to load.</span>
-        </div>
-        <h4 style="font-size:13px; font-weight:600; color:#172B4D; margin:1.25rem 0 0.75rem;">Option C — Confluence attachment</h4>
-        <ol class="embed-steps">
-          <li><div class="embed-num">1</div><div>Attach this HTML file directly to the Confluence page using the attachment panel.</div></li>
-          <li><div class="embed-num">2</div><div>Use the <strong>View File</strong> macro to display it inline, or link to it as a downloadable resource.</div></li>
-        </ol>
-      </div>
     </div>
   </div>
 
