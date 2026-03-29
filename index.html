@@ -236,9 +236,13 @@
       </svg>
       <div class="prog-ring-label" id="overall-pct">0%</div>
     </div>
-    <div>
+    <div style="flex:1;">
       <h3>Your onboarding progress</h3>
       <p>Check off tasks as you complete them. Progress is tracked across all phases. <strong id="overall-count">0 of 22</strong> tasks done.</p>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px; flex-wrap:wrap; gap:8px;">
+        <span id="saved-label" style="font-size:11px; color:#7A869A;">Progress auto-saved to this browser</span>
+        <button onclick="resetProgress()" style="font-size:11px; color:#97A0AF; background:none; border:0.5px solid #DFE1E6; border-radius:10px; padding:2px 10px; cursor:pointer;">Reset progress</button>
+      </div>
     </div>
   </div>
 
@@ -577,12 +581,56 @@ const phases = {
   }
 };
 
-const state = {};
+const STORAGE_KEY = 'xray_onboarding_progress';
 const TOTAL = 22;
+let state = {};
+let currentPhase = 1;
 
 function getKey(phase, idx) { return 'p' + phase + '_i' + idx; }
 
+function saveState() {
+  try {
+    const payload = { checks: state, savedAt: new Date().toISOString() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    updateSavedLabel();
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const payload = JSON.parse(raw);
+      state = payload.checks || {};
+      updateSavedLabel(payload.savedAt);
+    }
+  } catch(e) { state = {}; }
+}
+
+function updateSavedLabel(isoDate) {
+  const el = document.getElementById('saved-label');
+  if (!el) return;
+  if (isoDate) {
+    const d = new Date(isoDate);
+    const formatted = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+      + ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    el.textContent = 'Progress auto-saved · Last saved: ' + formatted;
+  } else {
+    el.textContent = 'Progress auto-saved to this browser';
+  }
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  state = {};
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  document.getElementById('saved-label').textContent = 'Progress cleared';
+  renderPhase(currentPhase);
+  updateOverall();
+}
+
 function renderPhase(num) {
+  currentPhase = num;
   const p = phases[num];
   const done = p.items.filter((_, i) => state[getKey(num, i)]).length;
   const pct = Math.round((done / p.items.length) * 100);
@@ -609,6 +657,7 @@ function toggle(phase, idx) {
   state[k] = !state[k];
   renderPhase(phase);
   updateOverall();
+  saveState();
 }
 
 function updateOverall() {
@@ -642,6 +691,7 @@ function switchMig(name, el) {
   el.classList.add('active');
 }
 
+loadState();
 renderPhase(1);
 updateOverall();
 </script>
