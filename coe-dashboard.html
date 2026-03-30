@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xray Adoption Dashboard — Testing CoE</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px; color: #172B4D; background: #F4F5F7; line-height: 1.6;
+  }
+  .dash { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  .dash-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .dash-header h1 { font-size: 22px; font-weight: 700; color: #172B4D; }
+  .dash-header p { font-size: 13px; color: #5E6C84; margin-top: 3px; }
+  .refresh-btn {
+    padding: 8px 18px; background: #0052CC; color: #fff; border: none;
+    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .refresh-btn:hover { background: #0747A6; }
+  .refresh-btn:disabled { background: #97A0AF; cursor: not-allowed; }
+  .last-refresh { font-size: 11px; color: #7A869A; margin-top: 4px; text-align: right; }
+
+  /* Config banner */
+  .config-banner {
+    background: #FFFAE6; border: 1px solid #FFE380; border-radius: 8px;
+    padding: 1rem 1.5rem; margin-bottom: 2rem; font-size: 13px; color: #7A4100;
+  }
+  .config-banner strong { color: #172B4D; }
+  .config-banner input {
+    margin-top: 8px; padding: 6px 10px; border: 1px solid #FFE380; border-radius: 6px;
+    font-size: 13px; color: #172B4D; width: 100%; max-width: 480px;
+  }
+  .config-banner button {
+    margin-top: 8px; margin-left: 8px; padding: 6px 14px; background: #0052CC;
+    color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;
+  }
+
+  /* Stat cards */
+  .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: #fff; border: 1px solid #DFE1E6; border-radius: 10px; padding: 1.25rem; }
+  .stat-label { font-size: 11px; font-weight: 600; color: #7A869A; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: #172B4D; line-height: 1.1; }
+  .stat-sub { font-size: 12px; color: #5E6C84; margin-top: 4px; }
+  .stat-card.highlight { border-color: #36B37E; background: #E3FCEF; }
+  .stat-card.highlight .stat-value { color: #006644; }
+
+  /* Phase distribution */
+  .section-title { font-size: 13px; font-weight: 600; color: #172B4D; margin-bottom: 1rem; }
+  .phase-dist { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 2rem; }
+  .phase-dist-card { background: #fff; border: 1px solid #DFE1E6; border-radius: 8px; padding: 1rem; text-align: center; }
+  .phase-dist-num { font-size: 26px; font-weight: 700; color: #0052CC; }
+  .phase-dist-label { font-size: 12px; color: #5E6C84; margin-top: 2px; }
+
+  /* Projects table */
+  .table-wrap { background: #fff; border: 1px solid #DFE1E6; border-radius: 10px; overflow: hidden; margin-bottom: 2rem; }
+  .table-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid #DFE1E6; flex-wrap: wrap; gap: 8px; }
+  .table-header h3 { font-size: 14px; font-weight: 600; color: #172B4D; }
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 4px 12px; font-size: 12px; border: 1px solid #DFE1E6; border-radius: 20px;
+    background: #fff; color: #5E6C84; cursor: pointer;
+  }
+  .filter-btn.active { background: #DEEBFF; color: #0052CC; border-color: #4C9AFF; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #F4F5F7; }
+  th { padding: 10px 14px; font-size: 11px; font-weight: 600; color: #7A869A; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; border-bottom: 1px solid #DFE1E6; white-space: nowrap; }
+  td { padding: 11px 14px; font-size: 13px; color: #172B4D; border-bottom: 1px solid #F4F5F7; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F4F5F7; }
+  .prog-cell { display: flex; align-items: center; gap: 8px; }
+  .prog-mini-bg { flex: 1; background: #DFE1E6; border-radius: 10px; height: 6px; min-width: 80px; }
+  .prog-mini-fill { background: #0052CC; height: 6px; border-radius: 10px; }
+  .prog-mini-fill.done { background: #36B37E; }
+  .prog-pct { font-size: 12px; font-weight: 600; color: #172B4D; white-space: nowrap; min-width: 34px; }
+  .phase-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .ph-1 { background: #DEEBFF; color: #0747A6; }
+  .ph-2 { background: #FFFAE6; color: #7A4100; }
+  .ph-3 { background: #FFE2DD; color: #BF2600; }
+  .ph-4 { background: #E3FCEF; color: #006644; }
+  .done-badge { background: #E3FCEF; color: #006644; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .metrics-badge { background: #EAE6FF; color: #403294; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .time-cell { font-size: 12px; color: #5E6C84; }
+
+  /* Phase avg times */
+  .phase-times { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 2rem; }
+  .phase-time-card { background: #fff; border: 1px solid #DFE1E6; border-radius: 8px; padding: 1rem; }
+  .phase-time-label { font-size: 11px; font-weight: 600; color: #7A869A; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .phase-time-val { font-size: 20px; font-weight: 700; color: #172B4D; }
+  .phase-time-sub { font-size: 12px; color: #5E6C84; }
+
+  /* Empty / loading */
+  .empty-state { text-align: center; padding: 3rem 2rem; color: #7A869A; }
+  .empty-state h3 { font-size: 15px; font-weight: 600; color: #172B4D; margin-bottom: 6px; }
+  .loading { text-align: center; padding: 2rem; color: #7A869A; font-size: 13px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #DFE1E6; border-top-color: #0052CC; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .stat-grid { grid-template-columns: repeat(2,1fr); }
+    .phase-dist { grid-template-columns: repeat(2,1fr); }
+    .phase-times { grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="dash">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h1>Xray Adoption Dashboard</h1>
+      <p>Testing Center of Excellence · Live progress across all onboarding projects</p>
+    </div>
+    <div style="text-align:right;">
+      <button class="refresh-btn" id="refresh-btn" onclick="loadData()">Refresh data</button>
+      <div class="last-refresh" id="last-refresh">Not yet loaded</div>
+    </div>
+  </div>
+
+  <!-- Config banner (shown until URL is set) -->
+  <div class="config-banner" id="config-banner">
+    <strong>Setup required:</strong> Paste your Google Apps Script Web App URL below to connect this dashboard to your data.
+    <br>
+    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+      <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/YOUR_ID/exec"/>
+      <button onclick="saveScriptUrl()">Save & connect</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total projects</div>
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-sub">registered in kit</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Fully onboarded</div>
+      <div class="stat-value" id="stat-onboarded">—</div>
+      <div class="stat-sub" id="stat-onboarded-pct">of target 500</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg progress</div>
+      <div class="stat-value" id="stat-avg-progress">—</div>
+      <div class="stat-sub">across all projects</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Metrics live</div>
+      <div class="stat-value" id="stat-metrics">—</div>
+      <div class="stat-sub">CoE dashboard ready</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">In progress</div>
+      <div class="stat-value" id="stat-in-progress">—</div>
+      <div class="stat-sub">started but not done</div>
+    </div>
+  </div>
+
+  <!-- Phase distribution -->
+  <p class="section-title">Projects by current phase</p>
+  <div class="phase-dist">
+    <div class="phase-dist-card">
+      <div class="phase-dist-num" id="pd-1">—</div>
+      <div class="phase-dist-label">Phase 1 — Setup & access</div>
+    </div>
+    <div class="phase-dist-card">
+      <div class="phase-dist-num" id="pd-2">—</div>
+      <div class="phase-dist-label">Phase 2 — Test assets</div>
+    </div>
+    <div class="phase-dist-card">
+      <div class="phase-dist-num" id="pd-3">—</div>
+      <div class="phase-dist-label">Phase 3 — Link & trace</div>
+    </div>
+    <div class="phase-dist-card">
+      <div class="phase-dist-num" id="pd-4">—</div>
+      <div class="phase-dist-label">Phase 4 — Reporting live</div>
+    </div>
+  </div>
+
+  <!-- Avg phase times -->
+  <p class="section-title">Average time spent per phase (minutes)</p>
+  <div class="phase-times">
+    <div class="phase-time-card">
+      <div class="phase-time-label">Phase 1</div>
+      <div class="phase-time-val" id="pt-1">—</div>
+      <div class="phase-time-sub">Setup & access</div>
+    </div>
+    <div class="phase-time-card">
+      <div class="phase-time-label">Phase 2</div>
+      <div class="phase-time-val" id="pt-2">—</div>
+      <div class="phase-time-sub">Test assets</div>
+    </div>
+    <div class="phase-time-card">
+      <div class="phase-time-label">Phase 3</div>
+      <div class="phase-time-val" id="pt-3">—</div>
+      <div class="phase-time-sub">Link & trace</div>
+    </div>
+    <div class="phase-time-card">
+      <div class="phase-time-label">Phase 4</div>
+      <div class="phase-time-val" id="pt-4">—</div>
+      <div class="phase-time-sub">Reporting live</div>
+    </div>
+  </div>
+
+  <!-- Projects table -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3>All projects</h3>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterTable('all', this)">All</button>
+        <button class="filter-btn" onclick="filterTable('onboarded', this)">Fully onboarded</button>
+        <button class="filter-btn" onclick="filterTable('in-progress', this)">In progress</button>
+        <button class="filter-btn" onclick="filterTable('metrics', this)">Metrics live</button>
+        <button class="filter-btn" onclick="filterTable('not-started', this)">Not started</button>
+      </div>
+    </div>
+    <div id="table-body">
+      <div class="loading"><span class="spinner"></span>Waiting for data...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let allProjects = [];
+let currentFilter = 'all';
+let scriptUrl = localStorage.getItem('coe_script_url') || '';
+
+function init() {
+  if (scriptUrl) {
+    document.getElementById('config-banner').style.display = 'none';
+    document.getElementById('script-url-input').value = scriptUrl;
+    loadData();
+  }
+}
+
+function saveScriptUrl() {
+  const val = document.getElementById('script-url-input').value.trim();
+  if (!val) return;
+  scriptUrl = val;
+  localStorage.setItem('coe_script_url', val);
+  document.getElementById('config-banner').style.display = 'none';
+  loadData();
+}
+
+function loadData() {
+  if (!scriptUrl) return;
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  document.getElementById('table-body').innerHTML = '<div class="loading"><span class="spinner"></span>Fetching data...</div>';
+
+  fetch(scriptUrl + '?t=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allProjects = (data.projects || []).map(function(p) {
+        return {
+          name: p['Project Name'] || '',
+          lastUpdated: p['Last Updated'] || '',
+          overallPct: parseInt(p['Overall %']) || 0,
+          tasksDone: parseInt(p['Tasks Done']) || 0,
+          currentPhase: parseInt(p['Current Phase']) || 1,
+          phase1Pct: parseInt(p['Phase 1 %']) || 0,
+          phase2Pct: parseInt(p['Phase 2 %']) || 0,
+          phase3Pct: parseInt(p['Phase 3 %']) || 0,
+          phase4Pct: parseInt(p['Phase 4 %']) || 0,
+          fullyOnboarded: p['Fully Onboarded'] === 'Yes',
+          metricsLive: p['Metrics Live'] === 'Yes',
+          phase1Mins: p['Phase 1 Mins'] || null,
+          phase2Mins: p['Phase 2 Mins'] || null,
+          phase3Mins: p['Phase 3 Mins'] || null,
+          phase4Mins: p['Phase 4 Mins'] || null
+        };
+      });
+      renderAll();
+      document.getElementById('last-refresh').textContent = 'Last refreshed: ' + new Date().toLocaleTimeString();
+    })
+    .catch(function(err) {
+      document.getElementById('table-body').innerHTML = '<div class="empty-state"><h3>Could not load data</h3><p>Check your Apps Script URL is correct and the deployment is set to "Anyone can access".</p></div>';
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Refresh data';
+    });
+}
+
+function renderAll() {
+  updateStats();
+  updatePhaseDist();
+  updatePhaseTimes();
+  renderTable();
+}
+
+function updateStats() {
+  const total = allProjects.length;
+  const onboarded = allProjects.filter(function(p) { return p.fullyOnboarded; }).length;
+  const metricsLive = allProjects.filter(function(p) { return p.metricsLive; }).length;
+  const inProgress = allProjects.filter(function(p) { return !p.fullyOnboarded && p.tasksDone > 0; }).length;
+  const avgProgress = total ? Math.round(allProjects.reduce(function(s,p) { return s + p.overallPct; }, 0) / total) : 0;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-onboarded').textContent = onboarded;
+  document.getElementById('stat-onboarded-pct').textContent = Math.round((onboarded/500)*100) + '% of target 500';
+  document.getElementById('stat-avg-progress').textContent = avgProgress + '%';
+  document.getElementById('stat-metrics').textContent = metricsLive;
+  document.getElementById('stat-in-progress').textContent = inProgress;
+}
+
+function updatePhaseDist() {
+  const counts = {1:0, 2:0, 3:0, 4:0};
+  allProjects.forEach(function(p) {
+    const ph = Math.min(4, Math.max(1, p.currentPhase));
+    counts[ph]++;
+  });
+  [1,2,3,4].forEach(function(i) {
+    document.getElementById('pd-' + i).textContent = counts[i];
+  });
+}
+
+function updatePhaseTimes() {
+  [1,2,3,4].forEach(function(ph) {
+    const key = 'phase' + ph + 'Mins';
+    const vals = allProjects.map(function(p) { return parseInt(p[key]); }).filter(function(v) { return !isNaN(v) && v > 0; });
+    const avg = vals.length ? Math.round(vals.reduce(function(a,b){ return a+b; }, 0) / vals.length) : null;
+    document.getElementById('pt-' + ph).textContent = avg !== null ? avg + ' min' : '—';
+  });
+}
+
+function filterTable(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  let filtered = allProjects.slice();
+  if (currentFilter === 'onboarded') filtered = filtered.filter(function(p) { return p.fullyOnboarded; });
+  else if (currentFilter === 'in-progress') filtered = filtered.filter(function(p) { return !p.fullyOnboarded && p.tasksDone > 0; });
+  else if (currentFilter === 'metrics') filtered = filtered.filter(function(p) { return p.metricsLive; });
+  else if (currentFilter === 'not-started') filtered = filtered.filter(function(p) { return p.tasksDone === 0; });
+
+  filtered.sort(function(a,b) { return b.overallPct - a.overallPct; });
+
+  if (!filtered.length) {
+    document.getElementById('table-body').innerHTML = '<div class="empty-state"><h3>No projects match this filter</h3><p>Try a different filter or wait for projects to register in the kit.</p></div>';
+    return;
+  }
+
+  let html = '<table><thead><tr>';
+  html += '<th>Project</th><th>Overall progress</th><th>Phase</th>';
+  html += '<th>Ph.1</th><th>Ph.2</th><th>Ph.3</th><th>Ph.4</th>';
+  html += '<th>Status</th><th>Last updated</th></tr></thead><tbody>';
+
+  filtered.forEach(function(p) {
+    const isDone = p.fullyOnboarded;
+    const lastUpd = p.lastUpdated ? new Date(p.lastUpdated).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const phClass = 'ph-' + Math.min(4, Math.max(1, p.currentPhase));
+    const phLabel = isDone ? 'Complete' : 'Phase ' + p.currentPhase;
+
+    html += '<tr>';
+    html += '<td style="font-weight:600;">' + escHtml(p.name) + '</td>';
+    html += '<td><div class="prog-cell"><div class="prog-mini-bg"><div class="prog-mini-fill' + (isDone?' done':'') + '" style="width:' + p.overallPct + '%"></div></div><span class="prog-pct">' + p.overallPct + '%</span></div></td>';
+    html += '<td><span class="phase-badge ' + phClass + '">' + phLabel + '</span></td>';
+    html += '<td><span style="font-size:12px;color:' + pct2color(p.phase1Pct) + ';">' + p.phase1Pct + '%</span></td>';
+    html += '<td><span style="font-size:12px;color:' + pct2color(p.phase2Pct) + ';">' + p.phase2Pct + '%</span></td>';
+    html += '<td><span style="font-size:12px;color:' + pct2color(p.phase3Pct) + ';">' + p.phase3Pct + '%</span></td>';
+    html += '<td><span style="font-size:12px;color:' + pct2color(p.phase4Pct) + ';">' + p.phase4Pct + '%</span></td>';
+    html += '<td>';
+    if (isDone) html += '<span class="done-badge">Onboarded</span>';
+    else if (p.metricsLive) html += '<span class="metrics-badge">Metrics live</span>';
+    else html += '<span style="font-size:12px;color:#7A869A;">' + p.tasksDone + '/22 tasks</span>';
+    html += '</td>';
+    html += '<td class="time-cell">' + lastUpd + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('table-body').innerHTML = html;
+}
+
+function pct2color(pct) {
+  if (pct === 100) return '#006644';
+  if (pct >= 50) return '#172B4D';
+  return '#97A0AF';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>
